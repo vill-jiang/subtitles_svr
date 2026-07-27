@@ -1,0 +1,64 @@
+# 歌词字幕搜索与 ASS 生成服务 配置
+# 写死的域名 / 端口 / 路径 / 接口等常量统一集中在此，按需修改后重启服务即可生效。
+
+server:
+  host: "0.0.0.0"   # 监听地址，0.0.0.0 表示所有网卡
+  port: 8085        # 监听端口
+
+# 文件监听目录（可选功能）
+# 文件监听为可选功能：windows_folder / linux_folder 留空（空字符串）即表示不开启监听，
+# 服务仍会正常提供搜索 / 下载 / 删除接口。仅在配置了目录时才会启动目录监听。
+watch:
+  # Windows 下通过 Samba 映射的远程音乐目录（UNC 路径），留空关闭监听
+  windows_folder: ''
+  # Linux 下对应的本地挂载目录，留空关闭监听
+  linux_folder: ''
+  # 监听时需要忽略的文件后缀
+  ignore_suffixes:
+    - ".!qB"
+  # 轮询观察者检测间隔（秒），Windows 下使用 PollingObserver
+  poll_timeout: 10
+
+# 路径与索引
+paths:
+  # 索引数据库存放目录
+  index_dir: "subtitles"
+  # 跨平台路径映射：Linux 下将远程路径前缀替换为本地挂载路径（示例占位符，部署时按实际修改）
+  remote_prefix: "//<remote-host>/<share>"
+  local_prefix: "/<local-mount>"
+
+# kg接口（敏感信息：请勿提交真实地址，部署时替换为实际地址）
+kugou:
+  # 歌曲搜索接口，{} 为 keyword 占位符
+  search_url: "http://<kugou-search-host>/api/v3/search/song?pagesize=10&tagtype=%E5%85%A8%E9%83%A8&keyword={}"
+  # KRC 歌词检索接口，{} 为 hash 占位符
+  krc_search_url: "https://<kugou-krc-host>/search?ver=1&man=yes&client=mobi&hash={}"
+  # KRC 歌词下载接口，{} 分别为 id / accesskey 占位符
+  krc_download_url: "https://<kugou-lyrics-host>/download?ver=1&client=pc&id={}&accesskey={}&fmt=krc&charset=utf8"
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  timeout: 3   # 请求超时（秒）
+
+# 字幕生成相关默认值
+subtitle:
+  default_lang: "zh-CN"
+  default_format: "raw"
+  default_max_item: 2
+  cue_max_workers: 15   # 解析 CUE 时并发下载歌词的线程数
+
+# ASS 样式（可选，缺省使用内置默认）
+ass:
+  font_name: "simhei"
+  font_size: 44
+  primary_colour: "&H08FF9232"     # 已着色
+  secondary_colour: "&H00FFFFFF"   # 未着色
+  outline_colour: "&H00303030"     # 边框
+  back_colour: "&H80000000"        # 背景
+  video_width: 1000
+  video_height: 720
+  margin_lr: 60
+  margin_v_up: 100
+  margin_v_bottom: 50
+  margin_safe: 26
+  tip_tri_cond_ms: 6000     # 超过多少毫秒才算新的段落
+  tip_tri_remain_ms: 2000   # 旧段落的停留时间
+  tip_tri_ms: 3000          # 新段落的引导时间
